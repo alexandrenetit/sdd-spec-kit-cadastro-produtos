@@ -1,36 +1,3 @@
-<!--
-SYNC IMPACT REPORT (rascunho para revisão humana; remover antes do commit)
-
-Version change: 1.0.0 → 1.1.0 (amendment MINOR: exceção para porta de persistência,
-resolvendo C1 do /speckit-analyze)
-Bump rationale: primeira ratificação. Todos os placeholders do template foram
-preenchidos; não existe constituição anterior a amendar.
-
-Modified principles (template → novo):
-- PRINCIPLE_1_NAME → I. Clean Architecture com Dependência em Um Sentido
-- PRINCIPLE_2_NAME → II. Domain-Driven Design
-- PRINCIPLE_3_NAME → III. Configuração Externa, Nada Fixo no Código
-- PRINCIPLE_4_NAME → IV. Persistência com EF Core e PostgreSQL
-- PRINCIPLE_5_NAME → V. Teste em Toda Mudança de Código
-- (novo) VI. Pronto Somente com Build e Testes Verdes
-- (novo) VII. YAGNI
-
-Added sections:
-- Technology Stack e Restrições Técnicas (era SECTION_2)
-- Fluxo de Desenvolvimento e Portões de Qualidade (era SECTION_3)
-
-Removed sections: nenhuma.
-
-Templates dependentes: não alterados (escopo deste comando é só a constituição).
-
-Deferred items / TODOs: nenhum placeholder adiado.
-Premissas assumidas:
-- PROJECT_NAME derivado do nome do repositório (cadastro-produto).
-- RATIFICATION_DATE = data de hoje (primeira adoção registrada).
-- Amendment 1.1.0: exceção no princípio VII para porta de persistência com uma única
-  implementação, exigida pelo princípio I.
--->
-
 # Cadastro de Produto Constitution
 
 ## Core Principles
