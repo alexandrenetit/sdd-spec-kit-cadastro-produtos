@@ -1,0 +1,291 @@
+openapi: 3.1.0
+info:
+  title: Cadastro de Produtos API
+  version: 1.1.0
+  description: >-
+    API do operador para cadastro, edição, listagem, inativação e reativação de produtos.
+    A autenticação é por cookie com expiração deslizante de 8 h de inatividade (FR-015).
+servers:
+  - url: http://localhost:8080
+    description: Desenvolvimento (docker compose)
+security:
+  - cookieSessao: []
+paths:
+  /api/auth/login:
+    post:
+      summary: Login do operador (FR-015). Define o cookie de sessão.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginEntrada'
+      responses:
+        '200':
+          description: Login aceito. O cookie de sessão vem no cabeçalho Set-Cookie.
+          headers:
+            Set-Cookie:
+              description: Cookie HttpOnly, SameSite=Strict, com expiração deslizante de 8 h
+              schema: { type: string }
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OperadorSaida'
+        '401':
+          $ref: '#/components/responses/CredenciaisInvalidas'
+        '422':
+          $ref: '#/components/responses/DadosInvalidos'
+        '503':
+          $ref: '#/components/responses/BancoIndisponivel'
+  /api/auth/logout:
+    post:
+      summary: Encerra a sessão e remove o cookie
+      responses:
+        '204':
+          description: Sessão encerrada
+        '401':
+          $ref: '#/components/responses/NaoAutenticado'
+  /api/produtos:
+    get:
+      summary: Listagem padrão, somente produtos ativos, em ordem alfabética (FR-012, FR-013, FR-014, FR-020)
+      parameters:
+        - name: pagina
+          in: query
+          schema: { type: integer, minimum: 1, default: 1 }
+        - name: tamanho
+          in: query
+          schema: { type: integer, minimum: 1, maximum: 200, default: 50 }
+      responses:
+        '200':
+          description: Página de produtos ativos. Lista vazia quando não há produtos ativos.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginaProdutos'
+        '401':
+          $ref: '#/components/responses/NaoAutenticado'
+        '503':
+          $ref: '#/components/responses/BancoIndisponivel'
+    post:
+      summary: Cadastrar produto (FR-001, FR-007, FR-022)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProdutoEntrada'
+      responses:
+        '201':
+          description: Produto criado como ativo, com CriadoPor e AlteradoPor preenchidos
+          headers:
+            Location:
+              schema: { type: string }
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Produto'
+        '409':
+          $ref: '#/components/responses/SkuEmUso'
+        '422':
+          $ref: '#/components/responses/DadosInvalidos'
+        '401':
+          $ref: '#/components/responses/NaoAutenticado'
+        '503':
+          $ref: '#/components/responses/BancoIndisponivel'
+  /api/produtos/{id}:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    get:
+      summary: Consultar produto por id, em qualquer situação (FR-021)
+      responses:
+        '200':
+          description: Produto encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Produto'
+        '404':
+          $ref: '#/components/responses/NaoEncontrado'
+        '401':
+          $ref: '#/components/responses/NaoAutenticado'
+        '503':
+          $ref: '#/components/responses/BancoIndisponivel'
+    put:
+      summary: Editar produto ativo (FR-008, FR-009, FR-022)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProdutoEntrada'
+      responses:
+        '200':
+          description: Produto atualizado. AlteradoPor e AtualizadoEm são atualizados.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Produto'
+        '404':
+          $ref: '#/components/responses/NaoEncontrado'
+        '409':
+          description: >-
+            SKU já usado por outro produto (FR-004), ou produto inativo no momento de salvar
+            (edição recusada, nada gravado)
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problema'
+        '422':
+          $ref: '#/components/responses/DadosInvalidos'
+        '401':
+          $ref: '#/components/responses/NaoAutenticado'
+        '503':
+          $ref: '#/components/responses/BancoIndisponivel'
+  /api/produtos/{id}/inativacao:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    post:
+      summary: Inativar produto (FR-010, FR-011, FR-022)
+      responses:
+        '200':
+          description: Produto inativo (inclui o caso de já estar inativo, sem alteração)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Produto'
+        '404':
+          $ref: '#/components/responses/NaoEncontrado'
+        '401':
+          $ref: '#/components/responses/NaoAutenticado'
+        '503':
+          $ref: '#/components/responses/BancoIndisponivel'
+  /api/produtos/{id}/reativacao:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    post:
+      summary: Reativar produto inativo (FR-017, FR-022)
+      responses:
+        '200':
+          description: Produto ativo novamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Produto'
+        '404':
+          $ref: '#/components/responses/NaoEncontrado'
+        '401':
+          $ref: '#/components/responses/NaoAutenticado'
+        '503':
+          $ref: '#/components/responses/BancoIndisponivel'
+components:
+  securitySchemes:
+    cookieSessao:
+      type: apiKey
+      in: cookie
+      name: Cadastro.Sessao
+      description: Cookie de sessão do operador, com expiração deslizante de 8 h de inatividade
+  parameters:
+    Id:
+      name: id
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+  responses:
+    NaoAutenticado:
+      description: Sessão ausente ou expirada (FR-015)
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problema'
+    CredenciaisInvalidas:
+      description: E-mail ou senha incorretos
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problema'
+    NaoEncontrado:
+      description: Produto não existe
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problema'
+    SkuEmUso:
+      description: SKU já usado por outro produto (FR-004)
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problema'
+    DadosInvalidos:
+      description: Campo fora da regra (preço negativo, SKU com formato inválido, nome vazio etc.)
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problema'
+    BancoIndisponivel:
+      description: >-
+        Banco de dados indisponível (FR-023). A operação foi recusada e nada foi gravado.
+        O operador pode tentar de novo depois.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problema'
+  schemas:
+    LoginEntrada:
+      type: object
+      required: [email, senha]
+      properties:
+        email: { type: string, format: email }
+        senha: { type: string, format: password }
+    OperadorSaida:
+      type: object
+      required: [id, email]
+      properties:
+        id: { type: string }
+        email: { type: string, format: email }
+    ProdutoEntrada:
+      type: object
+      required: [nome, sku, preco, estoque]
+      properties:
+        nome: { type: string, maxLength: 150 }
+        sku: { type: string, maxLength: 30, pattern: '^[A-Za-z0-9-]+$' }
+        preco: { type: number, minimum: 0, multipleOf: 0.01 }
+        estoque: { type: integer, minimum: 0 }
+    Produto:
+      type: object
+      required: [id, nome, sku, preco, precoExibicao, estoque, situacao, criadoPor, alteradoPor, criadoEm, atualizadoEm]
+      properties:
+        id: { type: string, format: uuid }
+        nome: { type: string }
+        sku: { type: string, description: 'Armazenado em maiúsculas' }
+        preco: { type: number, description: 'Valor numérico, duas casas decimais' }
+        precoExibicao:
+          type: string
+          description: 'Preço em real brasileiro, ex.: R$ 1.234,56 (FR-024)'
+          examples: ['R$ 1.234,56']
+        estoque: { type: integer }
+        situacao: { type: string, enum: [Ativo, Inativo] }
+        criadoPor: { type: string, description: 'Id do operador que cadastrou (FR-022)' }
+        alteradoPor: { type: string, description: 'Id do operador da última alteração (FR-022)' }
+        criadoEm: { type: string, format: date-time }
+        atualizadoEm: { type: string, format: date-time }
+    PaginaProdutos:
+      type: object
+      required: [itens, pagina, tamanho, total]
+      properties:
+        itens:
+          type: array
+          items:
+            $ref: '#/components/schemas/Produto'
+        pagina: { type: integer }
+        tamanho: { type: integer }
+        total: { type: integer }
+    Problema:
+      description: RFC 9457 Problem Details
+      type: object
+      properties:
+        type: { type: string }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
+        campo: { type: string, description: 'Campo que causou o erro, quando aplicável' }
