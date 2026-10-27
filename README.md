@@ -17,7 +17,6 @@ API REST para um operador de loja cadastrar, editar, listar, inativar e reativar
 - [Endpoints planejados](#endpoints-planejados)
 - [Como o projeto foi construído (Spec-Kit e SDD)](#como-o-projeto-foi-construído-spec-kit-e-sdd)
 - [Artefatos de especificação](#artefatos-de-especificação)
-- [Pendências](#pendências)
 
 ---
 
@@ -183,13 +182,3 @@ Isso instala os comandos `/speckit-...` como skills do Claude Code (`.claude/ski
 | `specs/001-cadastro-produto/tasks.md` | Lista de 72 tarefas por fase e história, todas pendentes |
 | `specs/001-cadastro-produto/checklists/` | Checklists de qualidade da especificação e de prontidão |
 
----
-
-## Pendências
-
-- **Implementação pendente.** Nenhum código de produção ou teste existe ainda. Nada descrito como funcionando foi executado.
-- **Checklist de prontidão aberto.** `checklists/readiness.md` tem itens sem marcação, pendentes de revisão.
-- **Comentário de rascunho na constituição.** O bloco de relatório de sincronização no topo de `.specify/memory/constitution.md` deve ser removido antes do primeiro commit.
-- **Sem commits de implementação.** Os artefatos de especificação já estão versionados na branch `001-cadastro-produto`; o código ainda não.
-
-Quando a implementação começar, o ambiente deve subir com `docker compose up -d --build` (ver `quickstart.md`) e os testes com `dotnet test Cadastro.sln`.
