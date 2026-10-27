@@ -1,5 +1,7 @@
 # Cadastro de Produtos
 
+> **Aviso:** este repositório é um projeto de **estudo** de Spec-Driven Development (SDD) com o [Spec-Kit](https://github.com/github/spec-kit) e o Claude Code. Os artefatos de especificação, plano e tarefas foram gerados e revisados com o apoio de IA. Não é um sistema em produção, e a implementação ainda não foi feita.
+
 API REST para um operador de loja cadastrar, editar, listar, inativar e reativar produtos (nome, SKU único, preço e estoque).
 
 > **Status:** o código ainda **não foi implementado**. Não há código de produção nem testes neste repositório. A especificação, o plano técnico, os contratos e as tarefas estão prontos em `specs/001-cadastro-produto/`. A implementação será iniciada em breve.
